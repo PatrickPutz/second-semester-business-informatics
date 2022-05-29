@@ -3,6 +3,7 @@ package komplettuebungen.chatserver;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ChatClient implements Runnable{
 
@@ -12,8 +13,9 @@ public class ChatClient implements Runnable{
     private Socket client;
     private String name;
     private ChatLogger logger;
+    private HashMap<String, ChatClient> clientMap;
 
-    public ChatClient(ArrayList<ChatClient> clients, Socket client, ChatLogger chatLogger) throws IOException {
+    public ChatClient(ArrayList<ChatClient> clients, Socket client, ChatLogger chatLogger, HashMap<String, ChatClient> stringChatClientHashMap) throws IOException {
         this.clients = clients;
         this.client = client;
         this.reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -21,6 +23,7 @@ public class ChatClient implements Runnable{
         this.name = "guest";
         clients.add(this);
         this.logger = chatLogger;
+        this.clientMap = stringChatClientHashMap;
     }
 
     @Override
@@ -33,9 +36,16 @@ public class ChatClient implements Runnable{
                 String[] parts = line.split(":");
                 if(parts.length == 2){
                     if(parts[0].equalsIgnoreCase("<name>")){
-                        this.name = parts[1];
-                        printWriter.println("Welcome " + this.name + "!");
-                        printWriter.flush();
+                        if(!clientMap.containsKey(parts[1])){
+                            this.name = parts[1];
+                            clientMap.put(this.getName(), this);
+                            printWriter.println("Welcome " + this.name + "!");
+                            printWriter.flush();
+                            }
+                        else{
+                            printWriter.println(this.name + " is already taken!");
+                            printWriter.flush();
+                        }
                     }
                     else if(parts[0].equalsIgnoreCase("<msg>")){
                         for (ChatClient chatClient : clients) {
@@ -49,10 +59,12 @@ public class ChatClient implements Runnable{
                 }
                 else if(parts.length == 3){
                     if(parts[0].equalsIgnoreCase("<msgto>")){
-                        for (ChatClient chatClient : clients) {
-                            if(chatClient.getName().equalsIgnoreCase(parts[1])){
-                                chatClient.sendMessage(this.name, parts[2]);
-                            }
+                        if(clientMap.containsKey(parts[1])){
+                            clientMap.get(parts[1]).sendMessage(this.name, parts[2]);
+                        }
+                        else{
+                            printWriter.println("UNKOWN USER");
+                            printWriter.flush();
                         }
                     }
                     else {
