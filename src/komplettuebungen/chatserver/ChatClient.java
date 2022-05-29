@@ -41,6 +41,10 @@ public class ChatClient implements Runnable{
                             clientMap.put(this.getName(), this);
                             printWriter.println("Welcome " + this.name + "!");
                             printWriter.flush();
+
+                            for (ChatClient chatClient : clients) {
+                                chatClient.sendMessage("Server", this.name + " just joined the chat!");
+                            }
                             }
                         else{
                             printWriter.println(this.name + " is already taken!");
@@ -77,7 +81,7 @@ public class ChatClient implements Runnable{
                     if(parts[0].equalsIgnoreCase("<bye>")){
                         printWriter.println("closing...");
                         for (ChatClient chatClient : clients) {
-                            chatClient.sendMessage(this.name, " has left the chat.");
+                            chatClient.sendMessage("Server", this.name + " has left the chat.");
                         }
                         printWriter.flush();
                         close();
