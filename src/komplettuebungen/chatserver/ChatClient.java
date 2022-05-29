@@ -47,7 +47,7 @@ public class ChatClient implements Runnable{
                             }
                             }
                         else{
-                            printWriter.println(this.name + " is already taken!");
+                            printWriter.println(parts[1] + " is already taken!");
                             printWriter.flush();
                         }
                     }
@@ -77,7 +77,6 @@ public class ChatClient implements Runnable{
                     }
                 }
                 else if(parts.length == 1){
-                    // keeping ifs separated in case more commands with the same length will be added (gonna be easier then)
                     if(parts[0].equalsIgnoreCase("<bye>")){
                         printWriter.println("closing...");
                         for (ChatClient chatClient : clients) {
@@ -85,6 +84,14 @@ public class ChatClient implements Runnable{
                         }
                         printWriter.flush();
                         close();
+                    }
+                    else if(parts[0].equalsIgnoreCase("<list>")){
+                        printWriter.println("<<< ALL REGISTERED USERS >>>");
+                        for (String s : clientMap.keySet()) {
+                            printWriter.println(s);
+                        }
+                        printWriter.println("<<< END >>>");
+                        printWriter.flush();
                     }
                     else {
                         printWriter.println("UNKOWN COMMAND");
@@ -111,6 +118,7 @@ public class ChatClient implements Runnable{
         reader.close();
         client.close();
         clients.remove(this);
+        clientMap.remove(this.getName());
     }
 
     public String getName() {
