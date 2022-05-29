@@ -12,10 +12,11 @@ public class Server {
         try(ServerSocket server = new ServerSocket(1111)) {
             System.out.println("server created...");
             ArrayList<ChatClient> clients = new ArrayList<>();
+            ChatLogger logger = new ChatLogger();
             while(true){
                 System.out.println("waiting to connect...");
                 Socket socket = server.accept();
-                ChatClient client = new ChatClient(clients, socket);
+                ChatClient client = new ChatClient(clients, socket, logger);
                 System.out.println("connection established");
                 Thread thread = new Thread(client);
                 thread.start();

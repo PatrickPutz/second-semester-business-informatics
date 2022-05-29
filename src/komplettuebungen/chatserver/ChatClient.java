@@ -11,14 +11,16 @@ public class ChatClient implements Runnable{
     private ArrayList<ChatClient> clients;
     private Socket client;
     private String name;
+    private ChatLogger logger;
 
-    public ChatClient(ArrayList<ChatClient> clients, Socket client) throws IOException {
+    public ChatClient(ArrayList<ChatClient> clients, Socket client, ChatLogger chatLogger) throws IOException {
         this.clients = clients;
         this.client = client;
         this.reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
         this.printWriter = new PrintWriter(new OutputStreamWriter(client.getOutputStream()));
         this.name = "guest";
         clients.add(this);
+        this.logger = chatLogger;
     }
 
     @Override
@@ -27,6 +29,7 @@ public class ChatClient implements Runnable{
             String line;
             while((line = reader.readLine()) != null){
                 System.out.println("received command: " + line);
+                logger.logMessage(this.name, line);
                 String[] parts = line.split(":");
                 if(parts.length == 2){
                     if(parts[0].equalsIgnoreCase("<name>")){
@@ -36,7 +39,7 @@ public class ChatClient implements Runnable{
                     }
                     else if(parts[0].equalsIgnoreCase("<msg>")){
                         for (ChatClient chatClient : clients) {
-                            chatClient.sendMessage(parts[1]);
+                            chatClient.sendMessage(this.name, parts[1]);
                         }
                     }
                     else{
@@ -48,7 +51,7 @@ public class ChatClient implements Runnable{
                     if(parts[0].equalsIgnoreCase("<msgto>")){
                         for (ChatClient chatClient : clients) {
                             if(chatClient.getName().equalsIgnoreCase(parts[1])){
-                                chatClient.sendMessage(parts[2]);
+                                chatClient.sendMessage(this.name, parts[2]);
                             }
                         }
                     }
@@ -62,7 +65,7 @@ public class ChatClient implements Runnable{
                     if(parts[0].equalsIgnoreCase("<bye>")){
                         printWriter.println("closing...");
                         for (ChatClient chatClient : clients) {
-                            chatClient.sendMessage(this.name + " has left the chat.");
+                            chatClient.sendMessage(this.name, " has left the chat.");
                         }
                         printWriter.flush();
                         close();
@@ -76,15 +79,14 @@ public class ChatClient implements Runnable{
                     printWriter.println("UNKOWN COMMAND");
                     printWriter.flush();
                 }
-
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void sendMessage(String message){
-        printWriter.println(message);
+    public void sendMessage(String name, String message){
+        printWriter.println(name + ": " + message);
         printWriter.flush();
     }
 
