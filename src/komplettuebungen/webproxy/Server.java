@@ -10,7 +10,7 @@ public class Server {
 
         try(ServerSocket server = new ServerSocket(5678)) {
             PageCache cache = new PageCache();
-            cache.warmUp("demo_urls.txt");
+            cache.warmUp(".\\data\\demo_urls.txt");
             WebProxy proxy = new WebProxy(cache);
             while(true){
                 Socket client = server.accept();
